@@ -57,25 +57,24 @@ function App() {
     const rows = pastedData.split('\n').filter(line => line.trim() !== '')
     const data = rows.map(row => {
       const parts = row.split('\t').map(p => p.trim())
-      if (parts.length < 5) return null
+      if (parts.length < 4) return null
+      
+      // New format: Symbol, Quantity, Fee, Source
+      const symbol = parts[0]
+      const quantity = parts[1].replace(/,/g, '')
+      const fee = parts[2].replace('$', '')
+      const source = parts[3] || 'Goldman'
+      
+      // Constants that get added automatically
+      const importType = 'Fee'
       const type = 'locate'
-      const symbol = parts[1]
-      const quantity = parts[2].replace(/,/g, '')
-      const fee = parts[3].replace('$', '')
-      let rate = parts[4].replace('%', '')
-      let rateNum = parseFloat(rate)
-      if (isNaN(rateNum)) {
-        rateNum = -1
-      } else if (rateNum > 0) {
-        rateNum = -1
-      }
-      const formattedRate = rateNum.toFixed(2) + '%'
-      const source = parts[5] || 'Goldman'
-      return { type, symbol, quantity, fee, formattedRate, source }
+      const rate = '-1%'
+      
+      return { importType, type, symbol, quantity, fee, rate, source }
     }).filter(d => d !== null)
 
-    const headers = 'Type,Symbol,Quantity,Fee,Rate,Source'
-    const csvRows = data.map(d => `${d.type},${d.symbol},${d.quantity},${d.fee},${d.formattedRate},${d.source}`)
+    const headers = 'importType,Type,Symbol,Quantity,Fee,Rate,Source'
+    const csvRows = data.map(d => `${d.importType},${d.type},${d.symbol},${d.quantity},${d.fee},${d.rate},${d.source}`)
     const csvContent = [headers, ...csvRows].join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -216,8 +215,8 @@ function App() {
                   placeholder="Paste your locate data here...
 
 Example:
-Locate	INHD	 5,000 	 $0.0040 	-1%	LOC14
-Locate	SBET	 3,000 	 $0.0010 	-1%	LOC8"
+CHEK	 15,000 	 $0.0100 	WEDBUSH
+HSDT	 10,000 	 $0.0050 	LOC7"
                   className="w-full p-6 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-gray-50/30 font-mono text-sm resize-y min-h-[300px]"
                 />
               </div>
